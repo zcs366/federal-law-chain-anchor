@@ -1,0 +1,32 @@
+name: publish-anchor
+
+# 每周一 09:00 UTC 兜底发布（立法事件触发的发布由本地 cron 调 publish.sh）
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish anchor snapshot
+        run: |
+          # 本仓库不保存链本体——只保存锚。此 workflow 用上次提交的锚
+          # 生成"锚仍有效"的签认提交（兜底心跳）。
+          # 真正的新锚由本地 publish.sh 推送。
+          if [ -f anchors/anchor-latest.json ]; then
+            ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            echo "anchor heartbeat: $ts" > .heartbeat
+            git config user.name "federal-law-anchor-bot"
+            git config user.email "zcs366@users.noreply.github.com"
+            git add .heartbeat
+            git commit -m "anchor heartbeat $ts (tip $(jq -r .tip_hash anchors/anchor-latest.json 2>/dev/null || echo unknown))" || echo "nothing to commit"
+            git push
+          else
+            echo "no anchor yet"
+          fi
