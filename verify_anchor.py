@@ -53,6 +53,7 @@ def main():
     # 2. hash recomputation over the full chain
     prev = ""
     recomputed = []
+    tip_row = None
     for r in rows:
         h = row_hash(prev, canonical(r))
         recomputed.append(h)
@@ -60,13 +61,20 @@ def main():
             failures.append(f"hash mismatch at {r.get('event_id')}: "
                             f"declared={r.get('hash')} recomputed={h}")
         prev = h
-    tip_row = rows[-1] if rows else None
-    if tip_row is None or anchor["tip_hash"] != tip_row["hash"]:
-        failures.append(f"anchor tip_hash {anchor.get('tip_hash')} != chain tail {tip_row['hash'] if tip_row else None}")
-    if anchor["tip_event_id"] != (tip_row["event_id"] if tip_row else None):
-        failures.append("anchor tip_event_id != chain tail event_id")
-    if anchor.get("total_events") != len(rows):
-        failures.append(f"total_events {anchor.get('total_events')} != chain length {len(rows)}")
+        # 锚点可以是链中任意一环（发布时的链尾，链生长后成为中间环）：
+        # 只要锚的tip落在链上且哈希重算match，锚即有效——不要求锚=当前链尾。
+        if r.get("event_id") == anchor.get("tip_event_id"):
+            tip_row = r
+    if tip_row is None:
+        failures.append(f"anchor tip_event_id {anchor.get('tip_event_id')} not found in chain")
+    elif anchor["tip_hash"] != tip_row["hash"]:
+        failures.append(f"anchor tip_hash {anchor.get('tip_hash')} != "
+                        f"chain row {tip_row['event_id']} hash {tip_row['hash']}")
+    # total_events 是锚生成时刻的快照——链天然只增不减，所以只有
+    # 「锚看到的比链副本还多」才算异常（链副本缺行）；链比锚长是正常生长。
+    if anchor.get("total_events") is not None and anchor["total_events"] > len(rows):
+        failures.append(f"total_events {anchor['total_events']} > chain length {len(rows)} — "
+                        f"chain copy missing events relative to anchor snapshot")
 
     # 3. anchor-chain linkage
     if args.prev_anchor:
@@ -74,7 +82,8 @@ def main():
         if anchor.get("prev_anchor_hash") != pa.get("tip_hash"):
             failures.append(f"prev_anchor_hash {anchor.get('prev_anchor_hash')} "
                             f"!= previous anchor tip_hash {pa.get('tip_hash')}")
-        elif anchor["tip_hash"] == pa["tip_hash"]:
+        elif (anchor["tip_hash"] == pa["tip_hash"]
+              and anchor["tip_event_id"] == pa.get("tip_event_id")):
             failures.append("anchor tip equals previous tip — no progress since last publish")
     elif anchor.get("prev_anchor_hash") is not None:
         print(f"[info] prev_anchor_hash={anchor['prev_anchor_hash']} — "
