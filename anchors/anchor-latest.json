@@ -1,16 +1,16 @@
 {
   "format_version": 1,
   "chain": "federal-legislative-history",
-  "tip_event_id": "LH-0021",
-  "tip_hash": "272551d541b3876c",
+  "tip_event_id": "LH-0022",
+  "tip_hash": "620a884be137df87",
   "tip_date": "2026-08-28",
-  "total_events": 21,
+  "total_events": 22,
   "type_counts": {
     "genesis": 1,
     "enact": 7,
-    "amend": 5,
+    "amend": 6,
     "execution": 8
   },
-  "prev_anchor_hash": "feef408ffbc6ede8",
+  "prev_anchor_hash": "272551d541b3876c",
   "generated": "2026-08-28"
 }
