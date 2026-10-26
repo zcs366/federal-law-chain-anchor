@@ -1,16 +1,16 @@
 {
   "format_version": 1,
   "chain": "federal-legislative-history",
-  "tip_event_id": "LH-0372",
-  "tip_hash": "c843f0e3c6e51019",
-  "tip_date": "2026-10-19",
-  "total_events": 372,
+  "tip_event_id": "LH-0406",
+  "tip_hash": "1693a0fa315ee76f",
+  "tip_date": "2026-10-26",
+  "total_events": 406,
   "type_counts": {
     "genesis": 1,
     "enact": 11,
-    "amend": 17,
-    "execution": 343
+    "amend": 19,
+    "execution": 375
   },
-  "prev_anchor_hash": "c611b5ba4832b46a",
-  "generated": "2026-10-19"
+  "prev_anchor_hash": "c843f0e3c6e51019",
+  "generated": "2026-10-26"
 }
